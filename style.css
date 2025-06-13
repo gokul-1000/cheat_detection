@@ -1,0 +1,381 @@
+/* static/style.css */
+
+/* Material Design Color Palette */
+:root {
+    --md-sys-color-primary: #3F51B5; /* Indigo 500 */
+    --md-sys-color-primary-dark: #303F9F; /* Indigo 700 */
+    --md-sys-color-primary-light: #C5CAE9; /* Indigo 100 */
+    --md-sys-color-secondary: #009688; /* Teal 500 */
+    --md-sys-color-secondary-dark: #00796B; /* Teal 700 */
+    --md-sys-color-secondary-light: #B2DFDB; /* Teal 100 */
+    --md-sys-color-error: #F44336; /* Red 500 */
+    --md-sys-color-warning: #FF9800; /* Orange 500 */
+    --md-sys-color-success: #4CAF50; /* Green 500 */
+    --md-sys-color-on-primary: #FFFFFF;
+    --md-sys-color-on-secondary: #FFFFFF;
+    --md-sys-color-on-surface: #212121; /* Grey 900 */
+    --md-sys-color-surface: #FFFFFF;
+    --md-sys-color-background: #F5F5F5; /* Grey 100 */
+    --md-sys-color-outline: #BDBDBD; /* Grey 400 */
+    --md-sys-color-light-grey: #EEEEEE; /* Grey 200 */
+}
+
+/* Base Styles & Typography */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-surface);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+h1, h2, h3 {
+    font-weight: 700;
+    color: var(--md-sys-color-primary-dark);
+    margin-bottom: 16px; /* 2 * 8dp */
+}
+
+h1 { /* Headline 4 */
+    font-size: 2.25rem; /* 36px */
+    letter-spacing: 0.007em;
+}
+
+h2 { /* Headline 5 */
+    font-size: 1.75rem; /* 28px */
+    letter-spacing: 0em;
+}
+
+h3 { /* Subtitle 1 */
+    font-size: 1.125rem; /* 18px */
+    letter-spacing: 0.009em;
+}
+
+p, label { /* Body 1 / Body 2 */
+    font-size: 1rem; /* 16px */
+    letter-spacing: 0.005em;
+    line-height: 1.5rem;
+}
+
+/* Layout - Container */
+.container {
+    max-width: 1200px;
+    margin: 32px auto; /* 4 * 8dp */
+    padding: 0 16px; /* 2 * 8dp */
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 24px; /* 3 * 8dp */
+    flex-grow: 1; /* Allow main content to take available space */
+}
+
+/* Header */
+header {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    padding: 24px 16px; /* 3 * 8dp, 2 * 8dp */
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* dp 2 elevation */
+    position: sticky;
+    top: 0;
+    z-index: 500; /* Ensure it stays above other content */
+}
+
+header h1 {
+    color: var(--md-sys-color-on-primary);
+    margin: 0 0 8px 0; /* 1 * 8dp */
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Sections - Cards */
+.exam-section, .detection-section {
+    background-color: var(--md-sys-color-surface);
+    border-radius: 8px; /* Slightly rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* dp 2 elevation */
+    padding: 24px; /* 3 * 8dp */
+    flex: 1; /* Allow sections to grow */
+    min-width: 300px; /* Minimum width for responsiveness */
+    display: flex;
+    flex-direction: column;
+}
+
+.exam-section {
+    flex: 2; /* Exam section takes more space */
+}
+
+/* Question List */
+.question-list {
+    margin-top: 16px; /* 2 * 8dp */
+}
+
+.question {
+    background-color: var(--md-sys-color-light-grey); /* Lighter background for questions */
+    padding: 20px;
+    margin-bottom: 24px; /* 3 * 8dp */
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle elevation */
+    transition: box-shadow 0.2s ease-out; /* Smooth shadow transition */
+}
+
+.question:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Higher elevation on hover */
+}
+
+.question h3 {
+    margin-top: 0;
+    color: var(--md-sys-color-on-surface);
+}
+
+.question label {
+    display: block;
+    padding: 12px 0; /* 1.5 * 8dp */
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid var(--md-sys-color-outline); /* Subtle separator */
+}
+
+.question label:last-child {
+    border-bottom: none;
+}
+
+.question label:hover {
+    background-color: rgba(0, 0, 0, 0.04); /* Ripple effect on hover */
+}
+
+.question input[type="radio"] {
+    margin-right: 12px; /* 1.5 * 8dp */
+    accent-color: var(--md-sys-color-secondary); /* Material style radio button */
+}
+
+/* Detection Section */
+.detection-section {
+    background-color: var(--md-sys-color-surface);
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 75%; /* Aspect ratio 4:3 (height / width * 100) */
+    background-color: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 24px; /* 3 * 8dp */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Higher elevation for video */
+}
+
+.video-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background-color: #333; /* Placeholder background */
+}
+
+.status-box {
+    padding: 16px; /* 2 * 8dp */
+    border-radius: 8px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 24px; /* 3 * 8dp */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    color: var(--md-sys-color-on-primary); /* Default text color on status */
+}
+
+/* Status Colors */
+.status-green {
+    background-color: var(--md-sys-color-success);
+}
+.status-orange {
+    background-color: var(--md-sys-color-warning);
+}
+.status-red {
+    background-color: var(--md-sys-color-error);
+}
+.status-grey {
+    background-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface); /* For grey, use dark text */
+}
+.status-yellow {
+    background-color: #FFEB3B; /* Amber 500 */
+    color: var(--md-sys-color-on-surface); /* Dark text on yellow */
+}
+
+.tip {
+    background-color: var(--md-sys-color-secondary-light); /* Lighter secondary for tips */
+    color: var(--md-sys-color-on-surface);
+    padding: 16px; /* 2 * 8dp */
+    border-radius: 8px;
+    font-size: 0.9em;
+    margin-top: auto; /* Push to bottom if content is short */
+}
+
+.tip strong {
+    color: var(--md-sys-color-secondary-dark);
+}
+
+/* Footer */
+footer {
+    background-color: var(--md-sys-color-primary-dark);
+    color: var(--md-sys-color-on-primary);
+    text-align: center;
+    padding: 16px; /* 2 * 8dp */
+    font-size: 0.9em;
+    margin-top: 32px; /* 4 * 8dp */
+}
+
+/* Modals & Pop-ups (Already in HTML <style>, moving here for consistency) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: var(--md-sys-color-surface);
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 16px 24px rgba(0, 0, 0, 0.3); /* dp 16 elevation for modals */
+    max-width: 500px;
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); /* Material animation curve */
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-content h2 {
+    color: var(--md-sys-color-error); /* Red for warning */
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+.modal-content p {
+    font-size: 1.3em;
+    color: var(--md-sys-color-on-surface);
+    margin-bottom: 30px;
+}
+
+.modal-content button {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* dp 2 */
+}
+
+.modal-content button:hover {
+    background-color: var(--md-sys-color-primary-dark);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25); /* dp 4 on hover */
+    transform: translateY(-2px); /* Slight lift */
+}
+
+.modal-content button:active {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Lower elevation on click */
+    transform: translateY(0);
+}
+
+/* Disabled Exam Elements */
+.exam-section.disabled {
+    pointer-events: none; /* Disable clicks */
+    opacity: 0.6; /* Visually dim */
+    filter: grayscale(50%); /* Add a grayscale effect */
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.exam-section.disabled .question,
+.exam-section.disabled .good-luck {
+    opacity: 0.8; /* Keep content slightly visible */
+}
+
+.exam-section.disabled input[type="radio"] {
+    cursor: not-allowed;
+}
+
+/* Webcam Blocked Overlay */
+.video-container.blocked::before {
+    content: "WEBCAM BLOCKED / UNAVAILABLE";
+    position: absolute;
+    top: 0; /* Cover the whole container */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.85); /* Darker overlay */
+    padding: 10px 20px;
+    border-radius: 8px; /* Match container border-radius */
+    font-size: 1.5em; /* Larger text */
+    font-weight: bold;
+    text-align: center;
+    z-index: 5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* Stack sections vertically */
+        margin: 16px auto;
+    }
+
+    .exam-section, .detection-section {
+        min-width: unset; /* Remove min-width on small screens */
+        width: 100%; /* Take full width */
+    }
+
+    header h1 {
+        font-size: 1.8rem;
+    }
+
+    .modal-content {
+        padding: 20px;
+        margin: 0 16px; /* Add horizontal margin */
+    }
+
+    .modal-content h2 {
+        font-size: 1.8em;
+    }
+
+    .modal-content p {
+        font-size: 1em;
+    }
+}
+
+/* Animations (additional examples) */
+.question label:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+}

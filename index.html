@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Mock Online Exam</title>
+    <!-- Material Design Roboto Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Your Custom Stylesheet (Material Design principles applied) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Material Icons (Optional, but highly recommended for Material Design) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>Welcome to Your Mock Exam!</h1>
+        <p>Please focus on the questions below. Your activity is being monitored.</p>
+    </header>
+
+    <main class="container">
+        <section class="exam-section" id="examSection" aria-live="polite">
+            <h2>Exam Questions</h2>
+            <div class="question-list">
+                <div class="question">
+                    <h3>Question 1: What is the capital of France?</h3>
+                    <label><input type="radio" name="q1" value="a"> A. Berlin</label>
+                    <label><input type="radio" name="q1" value="b"> B. Madrid</label>
+                    <label><input type="radio" name="q1" value="c"> C. Paris</label>
+                    <label><input type="radio" name="q1" value="d"> D. Rome</label>
+                </div>
+
+                <div class="question">
+                    <h3>Question 2: Which programming language is this script written in?</h3>
+                    <label><input type="radio" name="q2" value="a"> A. Java</label>
+                    <label><input type="radio" name="q2" value="b"> B. Python</label>
+                    <label><input type="radio" name="q2" value="c"> C. C++</label>
+                    <label><input type="radio" name="q2" value="d"> D. JavaScript</label>
+                </div>
+                <!-- Add more questions here following the same structure -->
+            </div>
+            <p class="good-luck">Good luck!</p>
+        </section>
+
+        <aside class="detection-section" aria-live="polite">
+            <h2>Live Proctoring</h2>
+            <div class="video-container" id="videoContainer">
+                <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Live Webcam Feed">
+            </div>
+            <div id="statusDisplay" class="status-box" role="status" aria-atomic="true">Loading status...</div>
+            <div class="tip">
+                <p><strong>Proctoring Tip:</strong> Stay centered and avoid external distractions.</p>
+                <p><strong>Strikes:</strong> <span id="strikeCount">0</span>/<span id="maxStrikes">3</span></p>
+            </div>
+            <!-- Add a dedicated area for incident logs if desired, possibly hidden and expandable -->
+            <button id="viewLogsBtn" class="md-button md-button-text">View Incident Logs</button>
+        </aside>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Advanced Cheating Detection System. All rights reserved.</p>
+    </footer>
+
+    <!-- Audio elements -->
+    <audio id="lightAlertSound" src="{{ url_for('static', filename='warning_light.mp3') }}" preload="auto"></audio>
+    <audio id="severeAlertSound" src="{{ url_for('static', filename='warning_severe.mp3') }}" preload="auto"></audio>
+
+    <!-- Modal for Test Blocked (Permanent Blocking) -->
+    <div class="modal-overlay" id="testBlockedModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription">
+        <div class="modal-content">
+            <h2 id="modalTitle">TEST BLOCKED!</h2>
+            <p id="modalDescription">Your test has been blocked due to repeated cheating detections.</p>
+            <p>Please contact your examination administrator.</p>
+            <!-- This button can be for acknowledgment but should not re-enable the test -->
+            <button id="closeModalBtn" class="md-button md-button-contained">Acknowledge</button>
+        </div>
+    </div>
+
+    <!-- Warning Pop-up Modal (Temporary Warning) -->
+    <div class="modal-overlay" id="warningModal" role="dialog" aria-modal="true" aria-labelledby="warningModalTitle" aria-describedby="warningModalDescription">
+        <div class="modal-content">
+            <h2 id="warningModalTitle" style="color: var(--md-sys-color-warning);">Warning!</h2>
+            <p id="warningModalDescription">Cheating detected. This is warning <span id="currentStrikeCount"></span>/<span id="totalStrikesAllowed"></span>. Further attempts will result in the test being blocked.</p>
+            <button id="closeWarningModalBtn" class="md-button md-button-contained">Acknowledge & Continue</button>
+        </div>
+    </div>
+
+    <!-- General Purpose Pop-up (Snackbar for less critical, transient messages) -->
+    <div class="snackbar" id="snackbar">
+        This is a general alert message.
+    </div>
+
+    <script>
+        // JavaScript for dynamic UI updates and Material Design interactions
+        const statusDisplay = document.getElementById('statusDisplay');
+        const lightAlertSound = document.getElementById('lightAlertSound');
+        const severeAlertSound = document.getElementById('severeAlertSound');
+        const testBlockedModal = document.getElementById('testBlockedModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const examSection = document.getElementById('examSection');
+        const videoFeed = document.getElementById('videoFeed');
+        const videoContainer = document.getElementById('videoContainer');
+        const strikeCountSpan = document.getElementById('strikeCount');
+        const maxStrikesSpan = document.getElementById('maxStrikes');
+        const snackbar = document.getElementById('snackbar');
+        const viewLogsBtn = document.getElementById('viewLogsBtn');
+
+        // New elements for warning modal
+        const warningModal = document.getElementById('warningModal');
+        const closeWarningModalBtn = document.getElementById('closeWarningModalBtn');
+        const currentStrikeCountDisplay = document.getElementById('currentStrikeCount'); // Renamed for clarity
+        const totalStrikesAllowedDisplay = document.getElementById('totalStrikesAllowed'); // Renamed for clarity
+
+        let lastPlayedSound = "none";
+        let isTestBlocked = false; // State to prevent repeated blocking
+        let lastReportedStrikeCount = 0; // To track changes in strike count from backend
+        let isWarningModalOpen = false; // To prevent multiple warning modals from stacking
+
+        // --- Utility Functions ---
+        function playSound(soundType) {
+            if (soundType === "light" && lightAlertSound) {
+                lightAlertSound.currentTime = 0; // Rewind to start
+                lightAlertSound.play().catch(e => console.warn("Error playing light sound:", e));
+            } else if (soundType === "severe" && severeAlertSound) {
+                severeAlertSound.currentTime = 0; // Rewind to start
+                severeAlertSound.play().catch(e => console.warn("Error playing severe sound:", e));
+            }
+        }
+
+        function showSnackbar(message, duration = 3000) {
+            snackbar.textContent = message;
+            snackbar.classList.add('show');
+            setTimeout(() => {
+                snackbar.classList.remove('show');
+            }, duration);
+        }
+
+        function showWarningModal(strikeNum, maxStrikes) {
+            // Only show if not already open and test is not yet permanently blocked
+            if (!isWarningModalOpen && !isTestBlocked) { 
+                currentStrikeCountDisplay.textContent = strikeNum;
+                totalStrikesAllowedDisplay.textContent = maxStrikes;
+                warningModal.classList.add('active');
+                isWarningModalOpen = true;
+                // Ensure test blocked modal is hidden if it somehow was active (shouldn't happen with logic)
+                hideTestBlockedModal(); 
+            }
+        }
+
+        function hideWarningModal() {
+            warningModal.classList.remove('active');
+            isWarningModalOpen = false;
+        }
+
+        function showTestBlockedModal() {
+            if (!isTestBlocked) { // Only block once
+                testBlockedModal.classList.add('active');
+                examSection.classList.add('disabled'); // Disable exam section elements
+                isTestBlocked = true;
+                // Immediately stop video feed and show blocked overlay
+                videoContainer.classList.add('blocked');
+                videoFeed.src = ""; // Stop the video stream
+                // Hide any warning modal
+                hideWarningModal();
+            }
+        }
+
+        function hideTestBlockedModal() {
+            testBlockedModal.classList.remove('active');
+            // Test remains blocked, so no re-enabling exam section here
+        }
+
+        // --- Core Status Update Function ---
+        function updateStatus() {
+            fetch('/status_feed')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    statusDisplay.textContent = data.status;
+
+                    // Remove previous color classes
+                    statusDisplay.classList.remove('status-green', 'status-orange', 'status-red', 'status-grey', 'status-yellow');
+
+                    // Apply new color class based on backend's color value
+                    // Backend sends [r, g, b] normalized to 0-1, convert to 0-255 for direct comparison
+                    const r = Math.round(data.color[0] * 255);
+                    const g = Math.round(data.color[1] * 255);
+                    const b = Math.round(data.color[2] * 255);
+
+                    if (r === 0 && g === 255 && b === 0) { // Green (All Clear)
+                        statusDisplay.classList.add('status-green');
+                    } else if (r === 0 && g === 165 && b === 255) { // Orange (Warning)
+                        statusDisplay.classList.add('status-orange');
+                    } else if (r === 0 && g === 0 && b === 255) { // Red (Cheating Detected/Blocked)
+                        statusDisplay.classList.add('status-red');
+                    } else if (r === 128 && g === 128 && b === 128) { // Grey (Initializing)
+                        statusDisplay.classList.add('status-grey');
+                    } else if (r === 255 && g === 255 && b === 0) { // Yellow (YOLO Info / Gaze Info)
+                        statusDisplay.classList.add('status-yellow');
+                    } else {
+                        statusDisplay.classList.add('status-grey'); // Default if color unknown
+                    }
+
+                    // Update strike count display
+                    strikeCountSpan.textContent = data.strike_count;
+                    maxStrikesSpan.textContent = data.max_strikes;
+
+                    // Handle sound alerts
+                    if (data.alert_sound && data.alert_sound !== "none") {
+                        if (data.alert_sound !== lastPlayedSound) {
+                            playSound(data.alert_sound);
+                            lastPlayedSound = data.alert_sound;
+                        }
+                    } else {
+                        lastPlayedSound = "none"; // Reset if no sound requested
+                    }
+
+                    // Handle webcam status (if the backend reports it as blocked/unavailable)
+                    if (data.status.includes("WEBCAM NOT FOUND") || data.status.includes("WEBCAM BLOCKED")) {
+                        videoContainer.classList.add('blocked');
+                        videoFeed.src = ""; // Stop the video stream if camera is explicitly blocked/unavailable
+                    } else {
+                        videoContainer.classList.remove('blocked');
+                        // Ensure video feed is active if it was blocked and now clear
+                        if (videoFeed.src === "") { // If src is empty (was stopped)
+                             videoFeed.src = "{{ url_for('video_feed') }}"; // Restart stream
+                        }
+                    }
+
+                    // --- NEW STRIKE/BLOCK LOGIC ---
+                    // If strike_count is greater than MAX_STRIKES, the test is permanently blocked
+                    if (data.strike_count > data.max_strikes) {
+                        showTestBlockedModal();
+                        showSnackbar("Your test has been blocked due to repeated violations!", 5000);
+                    } 
+                    // If a new strike has been issued and we are still within warning limits (1 to MAX_STRIKES)
+                    else if (data.strike_count > lastReportedStrikeCount && data.strike_count <= data.max_strikes) {
+                        showWarningModal(data.strike_count, data.max_strikes);
+                        showSnackbar(`Warning! Strike ${data.strike_count}/${data.max_strikes} issued!`, 4000);
+                    } 
+                    // If the status is "ALL CLEAR" and no modals are critical (like test blocked)
+                    else if (data.status.includes("ALL CLEAR") && !isTestBlocked) {
+                        hideWarningModal(); // Hide warning modal if test is all clear
+                    }
+                    
+                    // Update last reported strike count for the next iteration
+                    lastReportedStrikeCount = data.strike_count;
+
+                })
+                .catch(error => {
+                    console.error('Error fetching status:', error);
+                    statusDisplay.textContent = "Error: Could not connect to server.";
+                    statusDisplay.classList.add('status-grey');
+                    // Show webcam blocked state and snackbar if status feed fails
+                    videoContainer.classList.add('blocked');
+                    videoFeed.src = ""; // Stop video stream on error
+                    showSnackbar("Connection error. Please refresh.", 5000);
+                });
+        }
+
+        // --- Event Listeners ---
+        closeModalBtn.addEventListener('click', hideTestBlockedModal);
+        closeWarningModalBtn.addEventListener('click', hideWarningModal); // Listener for the new warning modal
+
+        // Dummy incident log viewer (for demonstration)
+        viewLogsBtn.addEventListener('click', () => {
+            showSnackbar("Incident logs would appear here (feature coming soon!).", 4000);
+        });
+
+        // Initial status update and then poll every 1 second
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus();
+            setInterval(updateStatus, 1000);
+        });
+    </script>
+</body>
+</html>
